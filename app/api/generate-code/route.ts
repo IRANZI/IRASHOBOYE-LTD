@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   
   // Try up to 10 times to generate a unique code
   for (let i = 0; i < 10; i++) {
-    code = `IR-${generateUniqueCode()}`;
+    code = `K${generateUniqueCode()}`;
     
     // Check if code already exists
     const existingCode = await prisma.generatedCode.findUnique({
