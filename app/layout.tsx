@@ -7,7 +7,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'IRASHOBOYE LTD',
+  title: 'KOLOREX ESTABLISHMENTS LIMITED',
   description: 'Code Generation',
   generator: 'v0.app',
   

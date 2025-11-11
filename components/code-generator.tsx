@@ -105,10 +105,11 @@ const CodeList: React.FC<CodeListProps> = ({
       >
         <div className="flex items-center space-x-4">
           <input
-            type="checkbox"
+            type="radio"
+            name="code-selection"
             checked={selectedCodes.includes(c.id)}
             onChange={() => onToggleSelect(c.id)}
-            className="h-4 w-4 text-blue-600 rounded"
+            className="h-4 w-4 text-blue-600"
           />
           <span
             className={`font-mono ${
@@ -224,7 +225,7 @@ export default function CodeGeneratorUI() {
   // Translations
   const translations: Record<Language, Translations> = {
     en: {
-      appTitle: 'IRASHOBOYE LTD',
+      appTitle: 'KOLOREX ESTABLISHMENTS LIMITED',
       generateCode: 'Generate Code',
       deleteUsed: 'Delete Used',
       clearAll: 'Clear All',
@@ -555,6 +556,12 @@ export default function CodeGeneratorUI() {
     }
   }, []);
 
+  const onToggleSelect = useCallback((id: string) => {
+    setSelectedForPrint(prev => 
+      prev[0] === id ? [] : [id]
+    );
+  }, []);
+
   const togglePrintSelection = useCallback(
     (selectAll: boolean) => {
       setSelectedForPrint(selectAll ? codes.map((c) => c.id) : []);
@@ -716,11 +723,7 @@ export default function CodeGeneratorUI() {
                 onToggleUsed={toggleCodeUsed}
                 onDelete={deleteCode}
                 onCopy={handleCopy}
-                onToggleSelect={(id) =>
-                  setSelectedForPrint((prev) =>
-                    prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-                  )
-                }
+                onToggleSelect={onToggleSelect}
               />
             )}
           </div>
