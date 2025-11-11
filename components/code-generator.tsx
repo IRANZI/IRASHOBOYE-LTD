@@ -260,7 +260,7 @@ export default function CodeGeneratorUI() {
       unexpectedError: 'An unexpected error occurred',
     },
     rw: {
-      appTitle: 'IRASHOBOYE LTD',
+      appTitle: 'KOLOREX ESTABLISHMENTS LIMITED',
       generateCode: 'Kora Kode',
       deleteUsed: 'Siba Izakoreshejwe',
       clearAll: 'Siba Byose',
