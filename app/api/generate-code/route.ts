@@ -32,17 +32,15 @@ export async function POST(request: Request) {
         },
       });
       
-      return NextResponse.json({
-        success: true,
-        code: newCode.code,
-        message: 'Unique code generated successfully',
+      return new Response(newCode.code, {
+        headers: { 'Content-Type': 'text/plain' },
       });
     }
   }
   
   // If we couldn't generate a unique code after 10 attempts
-  return NextResponse.json(
-    { success: false, message: 'Failed to generate a unique code. Please try again.' },
-    { status: 500 }
-  );
+  return new Response('Failed to generate a unique code. Please try again.', {
+    status: 500,
+    headers: { 'Content-Type': 'text/plain' },
+  });
 }
