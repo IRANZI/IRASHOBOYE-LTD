@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   try {
     const { used } = await request.json();
     
     const updatedCode = await prisma.generatedCode.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         used,
         usedAt: used ? new Date() : null,
@@ -26,15 +24,13 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   const requestId = Math.random().toString(36).substring(2, 8);
   const logContext = {
     requestId,
     endpoint: 'DELETE /api/codes/[id]',
-    codeId: params.id,
+    codeId: id,
     timestamp: new Date().toISOString()
   };
 
@@ -45,7 +41,6 @@ export async function DELETE(
   });
   
   // Validate the ID parameter
-  const id = params?.id;
   const isValidId = id && typeof id === 'string' && id.trim() !== '';
   
   if (!isValidId) {

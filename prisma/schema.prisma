@@ -11,12 +11,13 @@ datasource db {
 }
 
 model GeneratedCode {
-  id          String   @id @default(uuid())
+  id          BigInt   @id @default(autoincrement())
   code        String   @unique
   used        Boolean  @default(false)
-  usedAt      DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  usedAt      DateTime? @db.Timestamp
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamp
   
   @@index([code])
+  @@map("GeneratedCode")
 }

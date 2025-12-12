@@ -330,13 +330,24 @@ export default function CodeGeneratorUI() {
   const generateCode = useCallback(async () => {
     try {
       setIsGenerating(true);
-      const res = await fetch("/api/generate-code", { method: "POST" });
-      if (!res.ok) throw new Error("Failed to generate");
-      const newCode: Code = await res.json();
-      setCodes((prev) => [newCode, ...prev]);
-      toast.success(`Generated: ${newCode.code}`);
-    } catch (e) {
-      toast.error("Failed to generate code");
+      const res = await fetch("/api/generate-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAsUsed: false })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || "Failed to generate");
+      setCodes((prev) => [{
+        id: Date.now().toString(), // Temporary ID; ideally use real ID from backend if available
+        code: data.code,
+        used: false,
+        usedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }, ...prev]);
+      toast.success(`Generated: ${data.code}`);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to generate code");
     } finally {
       setIsGenerating(false);
     }
@@ -367,116 +378,28 @@ export default function CodeGeneratorUI() {
   );
 
   const deleteCode = useCallback(async (id: string) => {
-    if (!confirm(t.confirmDelete)) {
-      console.log('Delete operation cancelled by user');
-      return;
-    }
-
-    // Ensure the ID is a non-empty string
+    if (!confirm(t.confirmDelete)) return;
     if (!id || typeof id !== 'string' || id.trim() === '') {
-      console.error('Invalid code ID provided:', { id, type: typeof id });
       toast.error('Invalid code ID');
       return;
     }
-
-    const requestId = Math.random().toString(36).substring(2, 8);
-    const logContext = {
-      requestId,
-      codeId: id,
-      timestamp: new Date().toISOString()
-    };
-
-    console.log('Starting delete operation:', logContext);
-    
     try {
-      // Try the actions endpoint with POST first
-      const deleteUrl = `/api/codes/${encodeURIComponent(id)}/actions`;
-      console.log('Attempting to delete via actions endpoint:', deleteUrl);
-      
-      let response;
-      try {
-        console.log('Sending delete request to:', deleteUrl);
-        response = await fetch(deleteUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Request-ID': requestId
-          },
-          body: JSON.stringify({ action: 'delete' })
-        }).catch(fetchError => {
-          console.error('Network error during delete request:', fetchError);
-          throw new Error('Network error. Please check your connection.');
-        });
-
-        // Handle response
-        let result;
-        try {
-          const text = await response.text();
-          result = text ? JSON.parse(text) : {};
-        } catch (jsonError) {
-          console.error('Failed to parse JSON response:', {
-            ...logContext,
-            error: jsonError,
-            status: response.status,
-            statusText: response.statusText
-          });
-          throw new Error('Invalid response from server');
-        }
-        
-        console.log('Delete request completed:', {
-          ...logContext,
-          status: response.status,
-          statusText: response.statusText,
-          response: result
-        });
-        
-        if (!response.ok) {
-          // If main endpoint fails, try the fallback
-          const errorText = await response.text();
-          console.error(`Delete failed with status ${response.status}:`, errorText);
-          
-          // Try fallback endpoint
-          console.log(`Trying fallback endpoint for code ${id}`);
-          await deleteCodeFallback(id, requestId);
-        }
-        
-        // If we get here, deletion was successful
-        console.log('Successfully deleted code:', { ...logContext, response: result });
-        setCodes(prev => prev.filter(code => code.id !== id));
-        setSelectedForPrint(prev => prev.filter(i => i !== id));
-        
-        toast.success(t.codeDeleted);
-        
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error during deletion';
-        console.error('Error in delete operation:', { 
-          ...logContext, 
-          error: errorMessage,
-          timestamp: new Date().toISOString()
-        });
-        
-        // User-friendly error messages
-        let displayMessage = t.failedToDelete;
-        if (errorMessage.includes('Network')) {
-          displayMessage = t.networkError;
-        } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-          displayMessage = t.codeNotFound;
-        } else if (errorMessage.includes('400')) {
-          displayMessage = t.invalidRequest;
-        }
-        
-        toast.error(displayMessage);
-      }
-    } catch (error) {
-      console.error('Unexpected error in deleteCode:', {
-        ...logContext,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+      const res = await fetch(`/api/codes/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
       });
-      
-      toast.error(t.unexpectedError);
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Failed to delete');
+      setCodes(prev => prev.filter(code => code.id !== id));
+      setSelectedForPrint(prev => prev.filter(i => i !== id));
+      toast.success(t.codeDeleted);
+    } catch (error: any) {
+      let displayMessage = t.failedToDelete;
+      if (error.message?.includes('Network')) displayMessage = t.networkError;
+      if (error.message?.includes('404') || error.message?.includes('not found')) displayMessage = t.codeNotFound;
+      if (error.message?.includes('400')) displayMessage = t.invalidRequest;
+      toast.error(displayMessage);
     }
-  }, [toast]);
+  }, [t]);
 
   const deleteCodeFallback = useCallback(async (id: string, requestId: string) => {
     const fallbackUrl = `/api/codes/${encodeURIComponent(id)}`;

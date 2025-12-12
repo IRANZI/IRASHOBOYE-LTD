@@ -9,7 +9,13 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(codes);
+    // Convert BigInt to string for JSON serialization
+    const serializedCodes = codes.map(code => ({
+      ...code,
+      id: code.id.toString(), // Convert BigInt to string
+    }));
+
+    return NextResponse.json(serializedCodes);
   } catch (error) {
     console.error('Error fetching codes:', error);
     return NextResponse.json(
