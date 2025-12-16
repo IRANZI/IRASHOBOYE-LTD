@@ -17,7 +17,35 @@ model GeneratedCode {
   usedAt      DateTime? @db.Timestamp
   createdAt   DateTime @default(now()) @db.Timestamptz
   updatedAt   DateTime @updatedAt @db.Timestamp
+  usages      CodeUsage[]
   
   @@index([code])
   @@map("GeneratedCode")
+}
+
+model User {
+  id          BigInt   @id @default(autoincrement())
+  name        String
+  phoneNumber String
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamp
+  usages      CodeUsage[]
+  
+  @@unique([phoneNumber])
+  @@index([phoneNumber])
+  @@map("User")
+}
+
+model CodeUsage {
+  id          BigInt   @id @default(autoincrement())
+  codeId      BigInt
+  userId      BigInt
+  usedAt      DateTime @default(now()) @db.Timestamptz
+  code        GeneratedCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([codeId, userId])
+  @@index([codeId])
+  @@index([userId])
+  @@map("CodeUsage")
 }

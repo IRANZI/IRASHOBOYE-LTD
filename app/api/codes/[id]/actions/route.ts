@@ -37,10 +37,21 @@ export async function POST(
   }
 
   try {
+    // Convert string ID to BigInt for Prisma
+    let codeId: bigint;
+    try {
+      codeId = BigInt(id);
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid code ID format' },
+        { status: 400 }
+      );
+    }
+
     if (action === 'delete') {
       // Verify the code exists first
       const existingCode = await prisma.generatedCode.findUnique({
-        where: { id },
+        where: { id: codeId },
       });
 
       if (!existingCode) {
@@ -52,7 +63,7 @@ export async function POST(
 
       // Delete the code
       await prisma.generatedCode.delete({
-        where: { id },
+        where: { id: codeId },
       });
       
       console.log(`Successfully deleted code with id: ${id}`);
@@ -64,7 +75,7 @@ export async function POST(
 
     // For print and copy actions, first get the code
     const code = await prisma.generatedCode.findUnique({
-      where: { id },
+      where: { id: codeId },
     });
 
     if (!code) {
@@ -77,7 +88,7 @@ export async function POST(
     if (action === 'print') {
       // Mark as used when printed
       await prisma.generatedCode.update({
-        where: { id },
+        where: { id: codeId },
         data: { used: true, usedAt: new Date() },
       });
     }

@@ -6,15 +6,22 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   try {
     const { used } = await request.json();
     
+    // Convert string ID to BigInt for Prisma
+    const codeId = BigInt(id);
+    
     const updatedCode = await prisma.generatedCode.update({
-      where: { id },
+      where: { id: codeId },
       data: {
         used,
         usedAt: used ? new Date() : null,
       },
     });
 
-    return NextResponse.json(updatedCode);
+    // Convert BigInt to string for JSON serialization
+    return NextResponse.json({
+      ...updatedCode,
+      id: updatedCode.id.toString(),
+    });
   } catch (error) {
     console.error('Error updating code:', error);
     return NextResponse.json(
@@ -69,6 +76,21 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   const trimmedId = id.trim();
 
   try {
+    // Convert string ID to BigInt for Prisma
+    let codeId: bigint;
+    try {
+      codeId = BigInt(trimmedId);
+    } catch (error) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Invalid code ID format',
+          requestId
+        },
+        { status: 400 }
+      );
+    }
+
     console.log('Checking if code exists:', { ...logContext });
     
     // First check if the code exists
@@ -79,7 +101,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     });
     
     const existingCode = await prisma.generatedCode.findUnique({
-      where: { id: trimmedId },
+      where: { id: codeId },
       select: { id: true, code: true }
     });
 
@@ -104,7 +126,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     console.log('Attempting to delete code with ID:', trimmedId);
     
     const deleteResult = await prisma.generatedCode.delete({
-      where: { id: trimmedId },
+      where: { id: codeId },
     });
 
     console.log('Successfully deleted code:', { 

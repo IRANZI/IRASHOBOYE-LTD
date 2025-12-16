@@ -17,9 +17,12 @@ import {
   Copy,
   Trash2,
   Globe,
+  Trophy,
   type LucideProps,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import RegisterUserModal from "./register-user-modal";
+import UserLeaderboard from "./user-leaderboard";
 
 type Code = {
   id: string;
@@ -82,6 +85,8 @@ interface CodeListProps {
   onDelete: (id: string) => void;
   onCopy: (code: string) => void;
   onToggleSelect: (id: string) => void;
+  onRegisterUser: (codeId: string, code: string) => void;
+  onMarkAsUsedAndRegister: (codeId: string, code: string) => void;
   t: Omit<Translations, 'codeCopied' | 'failedToCopy' | 'networkError' | 'codeNotFound' | 'invalidRequest' | 'unexpectedError'>;
 }
 
@@ -93,6 +98,8 @@ const CodeList: React.FC<CodeListProps> = ({
   onDelete,
   onCopy,
   onToggleSelect,
+  onRegisterUser,
+  onMarkAsUsedAndRegister,
   t,
 }) => (
   <div className="space-y-2">
@@ -103,7 +110,7 @@ const CodeList: React.FC<CodeListProps> = ({
           c.used ? "bg-gray-100" : "bg-white shadow"
         }`}
       >
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 flex-1">
           <input
             type="radio"
             name="code-selection"
@@ -112,9 +119,15 @@ const CodeList: React.FC<CodeListProps> = ({
             className="h-4 w-4 text-blue-600"
           />
           <span
-            className={`font-mono ${
+            className={`font-mono cursor-pointer ${
               c.used ? "line-through text-gray-500" : "text-gray-900"
-            }`}
+            } ${c.used ? "hover:text-blue-600" : ""}`}
+            onClick={() => {
+              if (c.used) {
+                onRegisterUser(c.id, c.code);
+              }
+            }}
+            title={c.used ? "Click to register user for this code" : ""}
           >
             {c.code}
           </span>
@@ -169,29 +182,189 @@ interface PrintViewProps {
   t: Translations;
 }
 
+const PHONE_NUMBER = "+250788873038";
+
 const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(
   ({ codes, onClose, t }, ref) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-auto">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-white p-6 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-auto print:max-h-none print:overflow-visible">
+        <div className="flex justify-between items-center mb-4 print:hidden">
           <h2 className="text-xl font-semibold">{t.printPreview}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <X className="h-6 w-6" aria-label={t.close} />
           </button>
         </div>
 
-        <div ref={ref} className="space-y-2">
+        <div ref={ref} className="print-container">
+          <style>{`
+            @media print {
+              @page {
+                size: A4;
+                margin: 1cm;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                background: white;
+              }
+              .no-print {
+                display: none !important;
+              }
+              .print-container {
+                display: block;
+                width: 100%;
+              }
+              .print-card {
+                width: 100%;
+                min-height: 10cm;
+                page-break-after: always;
+                page-break-inside: avoid;
+                border: 2px solid #000;
+                margin-bottom: 1cm;
+                position: relative;
+              }
+              .card-section {
+                width: 100%;
+                min-height: 9cm;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 1.5cm;
+                box-sizing: border-box;
+              }
+              .card-front {
+                border-bottom: 3px dashed #666;
+              }
+              .card-back {
+                background: #f9f9f9;
+              }
+              .section-label {
+                position: absolute;
+                top: 0.3cm;
+                left: 0.5cm;
+                font-size: 0.6cm;
+                color: #666;
+                font-weight: bold;
+              }
+              .used-badge {
+                position: absolute;
+                top: 0.3cm;
+                right: 0.5cm;
+                background: #ef4444;
+                color: white;
+                padding: 0.2cm 0.4cm;
+                border-radius: 0.2cm;
+                font-size: 0.6cm;
+                font-weight: bold;
+                z-index: 10;
+              }
+              .print-card:last-child {
+                page-break-after: auto;
+              }
+            }
+            @media screen {
+              .print-container {
+                display: block;
+                width: 100%;
+                padding: 1rem;
+              }
+              .print-card {
+                width: 100%;
+                min-height: 400px;
+                border: 2px solid #000;
+                border-radius: 8px;
+                margin-bottom: 2rem;
+                position: relative;
+                background: white;
+              }
+              .card-section {
+                width: 100%;
+                min-height: 180px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 2rem;
+                box-sizing: border-box;
+              }
+              .card-front {
+                border-bottom: 3px dashed #ccc;
+              }
+              .card-back {
+                background: #f9f9f9;
+              }
+              .section-label {
+                position: absolute;
+                top: 0.75rem;
+                left: 1rem;
+                font-size: 0.75rem;
+                color: #666;
+                font-weight: bold;
+              }
+              .used-badge {
+                position: absolute;
+                top: 0.75rem;
+                right: 1rem;
+                background: #ef4444;
+                color: white;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.75rem;
+                font-weight: bold;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+              }
+            }
+          `}</style>
+
           {codes.map((c) => (
-            <div key={c.id} className="p-2 border-b border-gray-200">
-              <div className="font-mono text-lg">{c.code}</div>
-              <div className="text-sm text-gray-500">
-                <span>{c.used ? t.used : t.unused}</span>
+            <div key={c.id} className="print-card">
+              {c.used && (
+                <div className="used-badge">
+                  <Check className="h-3 w-3" />
+                  USED
+                </div>
+              )}
+              
+              {/* Front Side - Code */}
+              <div className="card-section card-front">
+                <div className="section-label print:hidden">FRONT</div>
+                <div className="text-center w-full">
+                  <div className="text-xs text-gray-500 mb-3 print:text-[0.6cm] print:mb-0.5cm">
+                    KOLOREX ESTABLISHMENTS LIMITED
+                  </div>
+                  <div className="font-mono font-bold text-5xl text-slate-900 tracking-widest print:text-[2cm] print:mb-0.5cm">
+                    {c.code}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-4 print:text-[0.5cm] print:mt-0.3cm">
+                    {new Date(c.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Back Side - Phone Number */}
+              <div className="card-section card-back">
+                <div className="section-label print:hidden">BACK</div>
+                <div className="text-center w-full">
+                  <div className="text-xs text-gray-500 mb-4 print:text-[0.6cm] print:mb-0.5cm">
+                    Contact Us
+                  </div>
+                  <div className="font-bold text-4xl text-slate-900 print:text-[1.5cm]">
+                    {PHONE_NUMBER}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-6 print:text-[0.5cm] print:mt-0.5cm">
+                    Code: {c.code}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 flex justify-end space-x-2">
+        <div className="mt-6 flex justify-end space-x-2 print:hidden no-print">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
@@ -220,6 +393,12 @@ export default function CodeGeneratorUI() {
   const [showPrint, setShowPrint] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [language, setLanguage] = useState<Language>('en');
+  const [registerModal, setRegisterModal] = useState<{ isOpen: boolean; codeId: string; code: string }>({
+    isOpen: false,
+    codeId: "",
+    code: "",
+  });
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Translations
@@ -485,6 +664,24 @@ export default function CodeGeneratorUI() {
     );
   }, []);
 
+  const handleMarkAsUsedAndRegister = useCallback(async (codeId: string, code: string) => {
+    // First mark the code as used
+    const codeObj = codes.find(c => c.id === codeId);
+    if (!codeObj) return;
+    
+    if (!codeObj.used) {
+      try {
+        await toggleCodeUsed(codeId, false);
+      } catch (error) {
+        toast.error("Failed to mark code as used");
+        return;
+      }
+    }
+    
+    // Then open the registration modal
+    setRegisterModal({ isOpen: true, codeId, code });
+  }, [codes, toggleCodeUsed]);
+
   const togglePrintSelection = useCallback(
     (selectAll: boolean) => {
       setSelectedForPrint(selectAll ? codes.map((c) => c.id) : []);
@@ -550,6 +747,19 @@ export default function CodeGeneratorUI() {
 
           <div className="flex space-x-2">
             <button
+              onClick={() => setShowLeaderboard(!showLeaderboard)}
+              className={`px-4 py-2 rounded-md flex items-center space-x-2 ${
+                showLeaderboard
+                  ? "bg-yellow-600 text-white hover:bg-yellow-700"
+                  : "bg-gray-600 text-white hover:bg-gray-700"
+              }`}
+              title="View Rankings"
+            >
+              <Trophy className="h-4 w-4" />
+              <span>Rankings</span>
+            </button>
+
+            <button
               onClick={handlePrint}
               disabled={selectedForPrint.length === 0}
               className={`px-4 py-2 rounded-md flex items-center space-x-2 ${
@@ -608,6 +818,21 @@ export default function CodeGeneratorUI() {
 
         {/* Actions */}
         <div className="flex space-x-2 mb-4">
+          {selectedForPrint.length > 0 && (() => {
+            const selectedCode = codes.find(c => c.id === selectedForPrint[0]);
+            if (selectedCode && !selectedCode.used) {
+              return (
+                <button
+                  onClick={() => handleMarkAsUsedAndRegister(selectedCode.id, selectedCode.code)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex items-center space-x-2"
+                >
+                  <Check className="h-4 w-4" />
+                  <span>Mark as Used by Someone</span>
+                </button>
+              );
+            }
+            return null;
+          })()}
           <button
             onClick={deleteUsedCodes}
             disabled={stats.used === 0}
@@ -632,25 +857,35 @@ export default function CodeGeneratorUI() {
           </button>
         </div>
 
-        {/* Code List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="p-4">
-            {codes.length === 0 ? (
-              <p className="text-gray-500">{t.noCodes}</p>
-            ) : (
-              <CodeList
-                codes={codes}
-                selectedCodes={selectedForPrint}
-                copiedCode={copiedCode}
-                t={t}
-                onToggleUsed={toggleCodeUsed}
-                onDelete={deleteCode}
-                onCopy={handleCopy}
-                onToggleSelect={onToggleSelect}
-              />
-            )}
+        {/* Leaderboard or Code List */}
+        {showLeaderboard ? (
+          <div className="mb-6">
+            <UserLeaderboard />
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="p-4">
+              {codes.length === 0 ? (
+                <p className="text-gray-500">{t.noCodes}</p>
+              ) : (
+                <CodeList
+                  codes={codes}
+                  selectedCodes={selectedForPrint}
+                  copiedCode={copiedCode}
+                  t={t}
+                  onToggleUsed={toggleCodeUsed}
+                  onDelete={deleteCode}
+                  onCopy={handleCopy}
+                  onToggleSelect={onToggleSelect}
+                  onRegisterUser={(codeId, code) => {
+                    setRegisterModal({ isOpen: true, codeId, code });
+                  }}
+                  onMarkAsUsedAndRegister={handleMarkAsUsedAndRegister}
+                />
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Print Modal */}
         {showPrint && (
@@ -661,6 +896,17 @@ export default function CodeGeneratorUI() {
             t={t}
           />
         )}
+
+        {/* Register User Modal */}
+        <RegisterUserModal
+          codeId={registerModal.codeId}
+          code={registerModal.code}
+          isOpen={registerModal.isOpen}
+          onClose={() => setRegisterModal({ isOpen: false, codeId: "", code: "" })}
+          onSuccess={() => {
+            fetchCodes(); // Refresh codes list
+          }}
+        />
       </div>
 
       {/* Toast Container */}
