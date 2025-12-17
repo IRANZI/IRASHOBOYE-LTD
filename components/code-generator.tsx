@@ -401,6 +401,19 @@ export default function CodeGeneratorUI() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
+  const uiText = {
+    en: {
+      rankings: "Rankings",
+      rankingsTooltip: "View rankings",
+      markUsedBySomeone: "Mark as Used by Someone",
+    },
+    rw: {
+      rankings: "Urutonde",
+      rankingsTooltip: "Reba urutonde rw'abakiriya",
+      markUsedBySomeone: "Shyira ko yakoreshejwe n'umukiriya",
+    },
+  } as const;
+
   // Translations
   const translations: Record<Language, Translations> = {
     en: {
@@ -753,10 +766,10 @@ export default function CodeGeneratorUI() {
                   ? "bg-yellow-600 text-white hover:bg-yellow-700"
                   : "bg-gray-600 text-white hover:bg-gray-700"
               }`}
-              title="View Rankings"
+              title={uiText[language].rankingsTooltip}
             >
               <Trophy className="h-4 w-4" />
-              <span>Rankings</span>
+              <span>{uiText[language].rankings}</span>
             </button>
 
             <button
@@ -827,7 +840,7 @@ export default function CodeGeneratorUI() {
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex items-center space-x-2"
                 >
                   <Check className="h-4 w-4" />
-                  <span>Mark as Used by Someone</span>
+                  <span>{uiText[language].markUsedBySomeone}</span>
                 </button>
               );
             }
@@ -860,7 +873,7 @@ export default function CodeGeneratorUI() {
         {/* Leaderboard or Code List */}
         {showLeaderboard ? (
           <div className="mb-6">
-            <UserLeaderboard />
+            <UserLeaderboard language={language} />
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -906,6 +919,7 @@ export default function CodeGeneratorUI() {
           onSuccess={() => {
             fetchCodes(); // Refresh codes list
           }}
+          language={language}
         />
       </div>
 

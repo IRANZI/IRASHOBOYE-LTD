@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Trophy, Medal, Award, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
+type Language = "en" | "rw";
+
 interface UserRanking {
   rank: number;
   id: string;
@@ -17,7 +19,47 @@ interface UserRanking {
   createdAt: Date;
 }
 
-export default function UserLeaderboard() {
+interface UserLeaderboardProps {
+  language: Language;
+}
+
+const leaderboardTranslations: Record<
+  Language,
+  {
+    title: string;
+    subtitle: string;
+    noRankings: string;
+    registeredLabel: string;
+    codesUsedShort: string;
+    codesUsedLabel: string;
+    refresh: string;
+    topLabel: (rank: number) => string;
+  }
+> = {
+  en: {
+    title: "User Rankings",
+    subtitle: "Ranked by number of codes used",
+    noRankings: "No rankings yet. Register users for codes to see rankings.",
+    registeredLabel: "Registered:",
+    codesUsedShort: "codes used",
+    codesUsedLabel: "Codes Used:",
+    refresh: "Refresh Rankings",
+    topLabel: (rank) => `Top ${rank}`,
+  },
+  rw: {
+    title: "Urutonde rw'Abakiriya",
+    subtitle: "Bakurikiranye hakurikijwe umubare wa za kode bakoresheje",
+    noRankings: "Nta rutonde ruraboneka. Andika abakiriya ku kode kugira ngo ubone urutonde.",
+    registeredLabel: "Yanditswe:",
+    codesUsedShort: "kode zakoreshejwe",
+    codesUsedLabel: "Kode zakoreshejwe:",
+    refresh: "Ongera ubone urutonde",
+    topLabel: (rank) => `Abambere ${rank}`,
+  },
+};
+
+export default function UserLeaderboard({ language }: UserLeaderboardProps) {
+  const t = leaderboardTranslations[language];
   const [rankings, setRankings] = useState<UserRanking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -76,7 +118,7 @@ export default function UserLeaderboard() {
   if (rankings.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-gray-500">No rankings yet. Register users for codes to see rankings.</p>
+        <p className="text-gray-500">{t.noRankings}</p>
       </div>
     );
   }
@@ -86,9 +128,9 @@ export default function UserLeaderboard() {
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <Trophy className="h-6 w-6" />
-          User Rankings
+          {t.title}
         </h2>
-        <p className="text-blue-100 text-sm mt-1">Ranked by number of codes used</p>
+        <p className="text-blue-100 text-sm mt-1">{t.subtitle}</p>
       </div>
 
       <div className="divide-y divide-gray-200">
@@ -110,26 +152,26 @@ export default function UserLeaderboard() {
                     <h3 className="font-semibold text-lg text-gray-900">{user.name}</h3>
                     {user.rank <= 3 && (
                       <span className="px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">
-                        Top {user.rank}
+                        {t.topLabel(user.rank)}
                       </span>
                     )}
                   </div>
                   <p className="text-sm text-gray-600">{user.phoneNumber}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Registered: {user.createdAt.toLocaleDateString()}
+                    {t.registeredLabel} {user.createdAt.toLocaleDateString()}
                   </p>
                 </div>
               </div>
 
               <div className="text-right">
                 <div className="text-2xl font-bold text-blue-600">{user.codeCount}</div>
-                <div className="text-xs text-gray-500">codes used</div>
+                <div className="text-xs text-gray-500">{t.codesUsedShort}</div>
               </div>
             </div>
 
             {user.codes.length > 0 && (
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <p className="text-xs font-medium text-gray-700 mb-2">Codes Used:</p>
+                <p className="text-xs font-medium text-gray-700 mb-2">{t.codesUsedLabel}</p>
                 <div className="flex flex-wrap gap-2">
                   {user.codes.map((codeUsage, index) => (
                     <span
@@ -154,7 +196,7 @@ export default function UserLeaderboard() {
           onClick={fetchRankings}
           className="text-sm text-blue-600 hover:text-blue-700 font-medium"
         >
-          Refresh Rankings
+          {t.refresh}
         </button>
       </div>
     </div>
