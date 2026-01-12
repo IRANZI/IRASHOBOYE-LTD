@@ -355,6 +355,9 @@ const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(
                   <div className="font-bold text-4xl text-slate-900 print:text-[1.5cm]">
                     {PHONE_NUMBER}
                   </div>
+                  <div className="text-lg text-gray-700 mt-2 print:text-[1cm]">
+                    Price: 1000 Shillings
+                  </div>
                   <div className="text-xs text-gray-500 mt-6 print:text-[0.5cm] print:mt-0.5cm">
                     Code: {c.code}
                   </div>

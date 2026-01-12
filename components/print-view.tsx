@@ -51,41 +51,41 @@ const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(({ codes, onClose }
               <div ref={ref} className="print:block">
                 <style>{`
                   @media print {
-                    @page {
-                      size: A4;
-                      margin: 1cm;
-                    }
-                    body {
-                      margin: 0;
-                      padding: 0;
-                      background: white;
-                    }
-                    .no-print {
-                      display: none !important;
-                    }
-                    .print-container {
-                      display: block;
-                      width: 100%;
-                    }
-                    .print-card {
-                      width: 100%;
-                      min-height: 10cm;
-                      page-break-after: always;
-                      page-break-inside: avoid;
-                      border: 2px solid #000;
-                      margin-bottom: 1cm;
-                      position: relative;
-                    }
-                    .card-section {
-                      width: 100%;
-                      min-height: 9cm;
-                      display: flex;
-                      flex-direction: column;
-                      justify-content: center;
-                      align-items: center;
-                      padding: 1.5cm;
-                      box-sizing: border-box;
-                    }
+  @page {
+    size: auto;
+    margin: 1cm;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-container {
+    display: block;
+    width: 100%;
+  }
+  .print-card {
+    width: 100%;
+    min-height: 300px;
+    page-break-after: always;
+    page-break-inside: avoid;
+    border: 2px solid #000;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .card-section {
+    width: 100%;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px;
+    box-sizing: border-box;
+  }
                     .card-front {
                       border-bottom: 3px dashed #666;
                     }
@@ -211,6 +211,9 @@ const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(({ codes, onClose }
                           </div>
                           <div className="font-bold text-4xl text-slate-900 print:text-[1.5cm]">
                             {PHONE_NUMBER}
+                          </div>
+                          <div className="text-lg text-gray-700 mt-2 print:text-[1cm]">
+                            Price: 1000 Shillings
                           </div>
                           <div className="text-xs text-gray-500 mt-6 print:text-[0.5cm] print:mt-0.5cm">
                             Code: {code.code}

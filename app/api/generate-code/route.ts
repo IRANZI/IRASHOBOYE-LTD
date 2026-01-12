@@ -5,8 +5,25 @@ import { triggerUpdate } from '../codes/updates/route';
 // Initialize Prisma Client
 const prisma = new PrismaClient();
 
-function generateSixDigitCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+function generateAlphaNumericCode(length = 6) {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const chars = letters + numbers;
+  let code = '';
+  let hasLetter = false;
+  let hasNumber = false;
+  while (!hasLetter || !hasNumber) {
+    code = '';
+    hasLetter = false;
+    hasNumber = false;
+    for (let i = 0; i < length; i++) {
+      const char = chars.charAt(Math.floor(Math.random() * chars.length));
+      code += char;
+      if (letters.includes(char)) hasLetter = true;
+      if (numbers.includes(char)) hasNumber = true;
+    }
+  }
+  return code;
 }
 
 export async function POST(request: Request) {
@@ -17,7 +34,7 @@ export async function POST(request: Request) {
 
     // Try up to 10 times to avoid duplicate codes
     for (let i = 0; i < 10; i++) {
-      newCodeValue = generateSixDigitCode();
+      newCodeValue = generateAlphaNumericCode();
       try {
         newCode = await prisma.generatedCode.create({
           data: { code: newCodeValue, used: markAsUsed },
