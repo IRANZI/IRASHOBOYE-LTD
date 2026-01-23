@@ -112,8 +112,7 @@ const CodeList: React.FC<CodeListProps> = ({
       >
         <div className="flex items-center space-x-4 flex-1">
           <input
-            type="radio"
-            name="code-selection"
+            type="checkbox"
             checked={selectedCodes.includes(c.id)}
             onChange={() => onToggleSelect(c.id)}
             className="h-4 w-4 text-blue-600"
@@ -503,7 +502,15 @@ export default function CodeGeneratorUI() {
   );
 
   const codesToPrint = useMemo(
-    () => codes.filter((c) => selectedForPrint.includes(c.id)),
+    () => {
+      const seen = new Set<string>();
+      return codes.filter((c) => {
+        if (!selectedForPrint.includes(c.id)) return false;
+        if (seen.has(c.id)) return false;
+        seen.add(c.id);
+        return true;
+      });
+    },
     [codes, selectedForPrint]
   );
 
@@ -675,8 +682,10 @@ export default function CodeGeneratorUI() {
   }, []);
 
   const onToggleSelect = useCallback((id: string) => {
-    setSelectedForPrint(prev => 
-      prev[0] === id ? [] : [id]
+    setSelectedForPrint(prev =>
+      prev.includes(id)
+        ? prev.filter(i => i !== id)
+        : [...prev, id]
     );
   }, []);
 
