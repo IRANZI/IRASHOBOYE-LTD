@@ -178,7 +178,7 @@ const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(({ codes, onClose }
                           <div className="section-label print:hidden">FRONT</div>
                           <div className="text-center w-full">
                             <div className="text-xs text-gray-500 mb-3 print:text-[0.6cm] print:mb-0.5cm">
-                              KOLOREX ESTABLISHMENTS LIMITED
+                              Kolorex Establishment Limited
                             </div>
                             <div className="font-mono font-bold text-5xl sm:text-6xl text-slate-900 tracking-widest print:text-[2cm]">
                               {code.code}

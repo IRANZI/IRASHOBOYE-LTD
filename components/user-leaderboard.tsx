@@ -21,6 +21,7 @@ interface UserRanking {
 
 interface UserLeaderboardProps {
   language: Language;
+  searchQuery?: string;
 }
 
 const leaderboardTranslations: Record<
@@ -29,6 +30,7 @@ const leaderboardTranslations: Record<
     title: string;
     subtitle: string;
     noRankings: string;
+    noMatches: string;
     registeredLabel: string;
     codesUsedShort: string;
     codesUsedLabel: string;
@@ -40,6 +42,7 @@ const leaderboardTranslations: Record<
     title: "User Rankings",
     subtitle: "Ranked by number of codes used",
     noRankings: "No rankings yet. Register users for codes to see rankings.",
+    noMatches: "No ranking matches your search.",
     registeredLabel: "Registered:",
     codesUsedShort: "codes used",
     codesUsedLabel: "Codes Used:",
@@ -50,6 +53,7 @@ const leaderboardTranslations: Record<
     title: "Urutonde rw'Abakiriya",
     subtitle: "Bakurikiranye hakurikijwe umubare wa za kode bakoresheje",
     noRankings: "Nta rutonde ruraboneka. Andika abakiriya ku kode kugira ngo ubone urutonde.",
+    noMatches: "Nta muntu uhuye n'ubushakashatsi.",
     registeredLabel: "Yanditswe:",
     codesUsedShort: "kode zakoreshejwe",
     codesUsedLabel: "Kode zakoreshejwe:",
@@ -58,7 +62,7 @@ const leaderboardTranslations: Record<
   },
 };
 
-export default function UserLeaderboard({ language }: UserLeaderboardProps) {
+export default function UserLeaderboard({ language, searchQuery = "" }: UserLeaderboardProps) {
   const t = leaderboardTranslations[language];
   const [rankings, setRankings] = useState<UserRanking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,6 +111,22 @@ export default function UserLeaderboard({ language }: UserLeaderboardProps) {
     return <span className="text-gray-500 font-bold">{rank}</span>;
   };
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const visibleRankings = normalizedSearch
+    ? rankings.filter((user) => {
+        const haystack = [
+          user.name,
+          user.phoneNumber,
+          String(user.rank),
+          String(user.codeCount),
+          ...user.codes.map((codeUsage) => codeUsage.code),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(normalizedSearch);
+      })
+    : rankings;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -134,7 +154,9 @@ export default function UserLeaderboard({ language }: UserLeaderboardProps) {
       </div>
 
       <div className="divide-y divide-gray-200">
-        {rankings.map((user) => (
+        {visibleRankings.length === 0 ? (
+          <div className="p-8 text-center text-sm text-gray-500">{t.noMatches}</div>
+        ) : visibleRankings.map((user) => (
           <div
             key={user.id}
             className={`p-4 hover:bg-gray-50 transition-colors ${

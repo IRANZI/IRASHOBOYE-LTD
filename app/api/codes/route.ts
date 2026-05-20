@@ -12,7 +12,7 @@ export async function GET() {
     // Convert BigInt to string for JSON serialization
     const serializedCodes = codes.map(code => ({
       ...code,
-      id: code.id.toString(), // Convert BigInt to string
+      id: code.id.toString(),
     }));
 
     return NextResponse.json(serializedCodes);

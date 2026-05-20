@@ -37,11 +37,8 @@ export async function POST(
   }
 
   try {
-    // Convert string ID to BigInt for Prisma
-    let codeId: bigint;
-    try {
-      codeId = BigInt(id);
-    } catch (error) {
+    const codeId = Number(id);
+    if (!Number.isInteger(codeId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid code ID format' },
         { status: 400 }

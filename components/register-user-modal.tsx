@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { X, Loader2, UserPlus } from "lucide-react";
 import toast from "react-hot-toast";
 
 type Language = "en" | "rw";
@@ -73,8 +73,15 @@ export default function RegisterUserModal({
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const t = modalTranslations[language];
+
+  useEffect(() => {
+    if (isOpen) {
+      window.setTimeout(() => nameInputRef.current?.focus(), 50);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -119,25 +126,45 @@ export default function RegisterUserModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold">{t.title}</h2>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="register-user-title"
+    >
+      <div className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50 p-6">
+          <div className="flex gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-600 text-white">
+              <UserPlus className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 id="register-user-title" className="text-lg font-semibold text-slate-950">
+                {t.title}
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {language === "en"
+                  ? "Enter the person's details. This adds them to rankings."
+                  : "Andika amakuru y'umukiriya. Ibi bimushyira ku rutonde."}
+              </p>
+            </div>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-white hover:text-slate-900"
             disabled={isSubmitting}
+            aria-label="Close popup"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-slate-700">
               {t.codeLabel}
             </label>
-            <div className="font-mono text-lg font-bold text-gray-900 bg-gray-50 p-3 rounded border">
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 font-mono text-lg font-bold text-indigo-800">
               {code}
             </div>
           </div>
@@ -145,16 +172,17 @@ export default function RegisterUserModal({
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="mb-2 block text-sm font-medium text-slate-700"
             >
               {t.nameLabel}
             </label>
             <input
+              ref={nameInputRef}
               type="text"
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               placeholder={t.namePlaceholder}
               required
               disabled={isSubmitting}
@@ -164,7 +192,7 @@ export default function RegisterUserModal({
           <div className="mb-6">
             <label
               htmlFor="phoneNumber"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="mb-2 block text-sm font-medium text-slate-700"
             >
               {t.phoneLabel}
             </label>
@@ -173,25 +201,25 @@ export default function RegisterUserModal({
               id="phoneNumber"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               placeholder={t.phonePlaceholder}
               required
               disabled={isSubmitting}
             />
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
               disabled={isSubmitting}
             >
               {t.cancel}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300 flex items-center space-x-2"
+              className="flex h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-indigo-300"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

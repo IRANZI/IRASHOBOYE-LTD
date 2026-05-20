@@ -1,16 +1,10 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: 'KOLOREX ESTABLISHMENTS LIMITED',
-  description: 'Code Generation',
-  generator: 'v0.app',
-  
+  title: 'Kolorex Establishment Limited',
+  description: 'Dashboard for generating, tracking, and ranking codes.',
 }
 
 export default function RootLayout({

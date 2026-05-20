@@ -333,7 +333,7 @@ const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(
                 <div className="section-label print:hidden">FRONT</div>
                 <div className="text-center w-full">
                   <div className="text-xs text-gray-500 mb-3 print:text-[0.6cm] print:mb-0.5cm">
-                    KOLOREX ESTABLISHMENTS LIMITED
+                    Kolorex Establishment Limited
                   </div>
                   <div className="font-mono font-bold text-5xl text-slate-900 tracking-widest print:text-[2cm] print:mb-0.5cm">
                     {c.code}
@@ -419,7 +419,7 @@ export default function CodeGeneratorUI() {
   // Translations
   const translations: Record<Language, Translations> = {
     en: {
-      appTitle: 'KOLOREX ESTABLISHMENTS LIMITED',
+      appTitle: 'Kolorex Establishment Limited',
       generateCode: 'Generate Code',
       deleteUsed: 'Delete Used',
       clearAll: 'Clear All',
@@ -454,7 +454,7 @@ export default function CodeGeneratorUI() {
       unexpectedError: 'An unexpected error occurred',
     },
     rw: {
-      appTitle: 'KOLOREX ESTABLISHMENTS LIMITED',
+      appTitle: 'Kolorex Establishment Limited',
       generateCode: 'Kora Kode',
       deleteUsed: 'Siba Izakoreshejwe',
       clearAll: 'Siba Byose',

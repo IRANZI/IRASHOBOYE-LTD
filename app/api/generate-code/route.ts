@@ -59,7 +59,15 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: 'Code generated successfully!',
-      code: newCode.code
+      code: newCode.code,
+      data: {
+        id: newCode.id.toString(),
+        code: newCode.code,
+        used: newCode.used,
+        usedAt: newCode.usedAt,
+        createdAt: newCode.createdAt,
+        updatedAt: newCode.updatedAt,
+      },
     });
 
   } catch (error) {

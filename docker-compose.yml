@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres.prlqfisnbpmzvapodpwu:Irashoboyeme@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"
+    command: sh -c "npm start"

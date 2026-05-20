@@ -6,8 +6,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   try {
     const { used } = await request.json();
     
-    // Convert string ID to BigInt for Prisma
-    const codeId = BigInt(id);
+    const codeId = Number(id);
+
+    if (!Number.isInteger(codeId)) {
+      return NextResponse.json(
+        { error: 'Invalid code ID format' },
+        { status: 400 }
+      );
+    }
     
     const updatedCode = await prisma.generatedCode.update({
       where: { id: codeId },
@@ -17,7 +23,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       },
     });
 
-    // Convert BigInt to string for JSON serialization
     return NextResponse.json({
       ...updatedCode,
       id: updatedCode.id.toString(),
@@ -76,11 +81,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   const trimmedId = id.trim();
 
   try {
-    // Convert string ID to BigInt for Prisma
-    let codeId: bigint;
-    try {
-      codeId = BigInt(trimmedId);
-    } catch (error) {
+    const codeId = Number(trimmedId);
+    if (!Number.isInteger(codeId)) {
       return NextResponse.json(
         { 
           success: false, 

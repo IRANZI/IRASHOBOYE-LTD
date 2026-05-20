@@ -4,26 +4,26 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.974 0.007 264.5);
+  --foreground: oklch(0.18 0.03 263);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.505 0.206 267.898);
+  --primary: oklch(0.53 0.23 266);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.505 0.206 267.898);
+  --accent: oklch(0.69 0.17 162);
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.505 0.206 267.898);
-  --chart-1: oklch(0.505 0.206 267.898);
+  --ring: oklch(0.53 0.23 266);
+  --chart-1: oklch(0.53 0.23 266);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
@@ -121,5 +121,48 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  body:has(.kolorex-print-page) * {
+    visibility: hidden;
+  }
+
+  body:has(.kolorex-print-page) .kolorex-print-page,
+  body:has(.kolorex-print-page) .kolorex-print-page * {
+    visibility: visible;
+  }
+
+  .kolorex-print-page {
+    break-after: page;
+    page-break-after: always;
+    min-height: 100vh;
+    width: 100%;
+  }
+
+  .kolorex-print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  aside,
+  header,
+  button {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
   }
 }
