@@ -235,6 +235,11 @@ function formatDate(value: string | null, language: "en" | "rw") {
   }).format(new Date(value));
 }
 
+function getPrintedPrice(code: string) {
+  const codeHash = [...code].reduce((total, character) => total + character.charCodeAt(0), 0);
+  return codeHash % 2 === 0 ? 1000 : 5000;
+}
+
 function StatCard({
   label,
   value,
@@ -442,6 +447,8 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
 
   const allVisibleSelected =
     visibleCodes.length > 0 && visibleCodes.every((code) => selected.includes(code.id));
+
+  const printPrice = printCode ? getPrintedPrice(printCode.code) : null;
 
   const markSelectedAsUsed = () => {
     if (!firstSelectedCode) {
@@ -725,34 +732,27 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
               </div>
             </div>
 
-            <div className="grid gap-4 p-4 sm:grid-cols-2 print:block print:p-0">
-              <section className="kolorex-print-page grid min-h-[420px] place-items-center rounded-lg border border-slate-200 bg-white p-8 text-center print:min-h-screen print:rounded-none print:border-0">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 print:text-[18pt]">
-                    {t.front}
-                  </p>
-                  <h3 className="mt-8 text-base font-semibold text-slate-500 print:text-[20pt]">
+            <div className="p-4 print:p-0">
+              <section className="kolorex-print-page grid min-h-[520px] place-items-center rounded-lg border border-slate-200 bg-white p-8 text-center print:min-h-screen print:rounded-none print:border-0 print:p-16">
+                <div className="w-full max-w-2xl">
+                  <h3 className="text-base font-semibold text-slate-500 print:text-[22pt]">
                     Kolorex Establishment Limited
                   </h3>
-                  <p className="mt-8 break-all font-mono text-5xl font-black tracking-widest text-slate-950 sm:text-6xl print:text-[72pt]">
+                  <p className="mt-10 break-all font-mono text-5xl font-black text-slate-950 sm:text-7xl print:text-[84pt]">
                     {printCode.code}
                   </p>
-                  <p className="mt-8 text-sm text-slate-500 print:text-[18pt]">{t.cardFront}</p>
-                </div>
-              </section>
-
-              <section className="kolorex-print-page grid min-h-[420px] place-items-center rounded-lg border border-slate-200 bg-slate-50 p-8 text-center print:min-h-screen print:rounded-none print:border-0 print:bg-white">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 print:text-[18pt]">
-                    {t.back}
+                  <div className="mx-auto mt-10 h-px max-w-md bg-slate-200 print:bg-slate-400" />
+                  <p className="mt-10 text-sm font-semibold uppercase text-indigo-600 print:text-[18pt]">
+                    Contact number
                   </p>
-                  <h3 className="mt-8 text-base font-semibold text-slate-500 print:text-[20pt]">
-                    Kolorex Establishment Limited
-                  </h3>
-                  <p className="mt-8 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl print:text-[56pt]">
+                  <p className="mt-3 text-4xl font-black text-slate-950 sm:text-6xl print:text-[62pt]">
                     +250788873038
                   </p>
-                  <p className="mt-8 text-sm text-slate-500 print:text-[18pt]">{t.cardBack}</p>
+                  {printPrice !== null && (
+                    <p className="mt-10 inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-5 py-3 text-2xl font-bold text-emerald-800 print:border-slate-400 print:bg-white print:px-8 print:py-4 print:text-[30pt] print:text-slate-950">
+                      {printPrice} Shillings
+                    </p>
+                  )}
                 </div>
               </section>
             </div>
