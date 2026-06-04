@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import type { GeneratedCode } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-type GeneratedCode = {
+interface CodeWithActions extends Omit<GeneratedCode, 'id'> {
   id: string;
-  code: string;
-  used: boolean;
-  usedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-const prisma = new PrismaClient();
-
-interface CodeWithActions extends Omit<GeneratedCode, 'usedAt'> {
   actions: {
     print: string;
     copy: string;
@@ -28,9 +19,9 @@ export async function GET() {
       },
     });
 
-    // Add action URLs to each code
-    const codesWithActions: CodeWithActions[] = codes.map((code: GeneratedCode) => ({
+    const codesWithActions: CodeWithActions[] = codes.map((code) => ({
       ...code,
+      id: code.id.toString(),
       actions: {
         print: `/api/codes/${code.id}/actions`,
         copy: `/api/codes/${code.id}/actions`,

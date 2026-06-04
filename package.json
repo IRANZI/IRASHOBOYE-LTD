@@ -6,6 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
+    "db:apply": "node scripts/apply-db-changes.js",
+    "seed:admin": "node scripts/seed-admin.js",
     "start": "next start"
   },
   "dependencies": {

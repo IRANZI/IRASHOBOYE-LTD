@@ -3,11 +3,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  // Ensure params is resolved
-  const resolvedParams = await Promise.resolve(params);
-  const { id } = resolvedParams;
+  const { id } = await context.params;
   
   console.log('Received request to /api/codes/[id]/actions with id:', id);
   
@@ -83,10 +81,10 @@ export async function POST(
     }
 
     if (action === 'print') {
-      // Mark as used when printed
+      // Mark the code as printed without changing usage/registration status.
       await prisma.generatedCode.update({
         where: { id: codeId },
-        data: { used: true, usedAt: new Date() },
+        data: { printed: true, printedAt: new Date() },
       });
     }
 
@@ -94,7 +92,8 @@ export async function POST(
       success: true,
       data: {
         code: code.code,
-        used: action === 'print' ? true : code.used,
+        used: code.used,
+        printed: action === 'print' ? true : code.printed,
       },
       message: `Code ${action}ed successfully`,
     });

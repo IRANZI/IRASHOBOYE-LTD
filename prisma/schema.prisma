@@ -12,11 +12,23 @@ model GeneratedCode {
   code        String   @unique
   used        Boolean  @default(false)
   usedAt      DateTime? @db.Timestamptz
+  printed     Boolean  @default(false)
+  printedAt   DateTime? @db.Timestamptz
   createdAt   DateTime @default(now()) @db.Timestamptz
   updatedAt   DateTime @updatedAt @db.Timestamptz
   usages      CodeUsage[]
 
   @@index([code])
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
+
+  @@index([username])
 }
 
 model User {
