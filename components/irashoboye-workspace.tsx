@@ -14,7 +14,7 @@ import {
   Trophy,
   UserPlus,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import RegisterUserModal from "@/components/register-user-modal";
 import UserLeaderboard from "@/components/user-leaderboard";
@@ -28,6 +28,8 @@ type Code = {
   code: string;
   used: boolean;
   usedAt: string | null;
+  printed: boolean;
+  printedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -37,6 +39,9 @@ type RegisterState = {
   codeId: string;
   code: string;
 };
+
+const COMPANY_NAME = "Kolorex Establishment Limited";
+const CONTACT_PHONE_NUMBER = "+250 784 321 509";
 
 const viewCopy: Record<"en" | "rw", Record<WorkspaceView, { eyebrow: string; title: string; description: string }>> = {
   en: {
@@ -146,6 +151,9 @@ const text = {
     print: "Print",
     code: "Code",
     status: "Status",
+    printedStatus: "Print status",
+    printed: "Printed",
+    notPrinted: "Not printed",
     created: "Created",
     usedDate: "Used date",
     actions: "Actions",
@@ -161,7 +169,7 @@ const text = {
     deleteQuestion: "Delete code",
     codeDeleted: "Code deleted",
     printTemplate: "Print template",
-    printTemplateBody: "Printed cards show the business name, generated code, contact number, and price. Select codes from the table before printing.",
+    printTemplateBody: "Printed tickets show the business name, price, telephone number, and a small code reference. Select one or many codes to print across the same sheet.",
     rankingRule: "Ranking rule",
     rankingRuleBody: "Customers are ranked by the number of used codes registered to their phone number.",
   },
@@ -205,6 +213,9 @@ const text = {
     print: "Capa",
     code: "Kode",
     status: "Uko ihagaze",
+    printedStatus: "Uko gucapa bihagaze",
+    printed: "Yacapwe",
+    notPrinted: "Ntiyacapwe",
     created: "Yakozwe",
     usedDate: "Itariki yakoreshejwe",
     actions: "Ibikorwa",
@@ -220,7 +231,7 @@ const text = {
     deleteQuestion: "Siba kode",
     codeDeleted: "Kode yasibwe",
     printTemplate: "Ifishi yo gucapa",
-    printTemplateBody: "Amakarita acapwa agaragaza izina ry'ikigo, kode, telefone, n'igiciro. Hitamo kode mbere yo gucapa.",
+    printTemplateBody: "Amatike acapwa agaragaza izina ry'ikigo, igiciro, telefone, na kode nto. Hitamo kode imwe cyangwa nyinshi kugira ngo zicapirwe ku rupapuro rumwe.",
     rankingRule: "Uko urutonde rukorwa",
     rankingRuleBody: "Abakiriya batondekwa hakurikijwe umubare wa kode zanditswe kuri telefone yabo.",
   },
@@ -252,24 +263,24 @@ function StatCard({
   tone: "indigo" | "emerald" | "rose" | "amber";
 }) {
   const tones = {
-    indigo: "bg-indigo-50 text-indigo-700 border-indigo-100",
-    emerald: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    rose: "bg-rose-50 text-rose-700 border-rose-100",
-    amber: "bg-amber-50 text-amber-700 border-amber-100",
+    indigo: "bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-400/10 dark:text-indigo-200 dark:border-indigo-400/20",
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:border-emerald-400/20",
+    rose: "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-400/10 dark:text-rose-200 dark:border-rose-400/20",
+    amber: "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:border-amber-400/20",
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-slate-500">{label}</p>
-          <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">{value}</p>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
+          <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">{value}</p>
         </div>
         <span className={cn("rounded-md border px-2.5 py-1 text-xs font-semibold", tones[tone])}>
           Live
         </span>
       </div>
-      <p className="mt-3 text-sm text-slate-500">{detail}</p>
+      <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{detail}</p>
     </div>
   );
 }
@@ -282,7 +293,7 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
-  const [printCode, setPrintCode] = useState<Code | null>(null);
+  const [printCodes, setPrintCodes] = useState<Code[]>([]);
   const [registerModal, setRegisterModal] = useState<RegisterState>({
     isOpen: false,
     codeId: "",
@@ -328,14 +339,16 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
       const haystack = [
         code.code,
         code.used ? t.used : t.available,
+        code.printed ? t.printed : t.notPrinted,
         code.createdAt,
         code.usedAt ?? "",
+        code.printedAt ?? "",
       ]
         .join(" ")
         .toLowerCase();
       return haystack.includes(normalizedSearch);
     });
-  }, [codes, normalizedSearch, t.available, t.used]);
+  }, [codes, normalizedSearch, t.available, t.notPrinted, t.printed, t.used]);
 
   const latestCodes = visibleCodes.slice(0, view === "dashboard" ? 7 : visibleCodes.length);
   const chartData = useMemo(() => {
@@ -377,6 +390,50 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
     setCodes((previous) => previous.map((item) => (item.id === code.id ? updated : item)));
     return updated as Code;
   };
+
+  const markCodesPrinted = useCallback(
+    async (codesToMark: Code[]) => {
+      const unprintedCodes = codesToMark.filter((code) => !code.printed);
+      if (unprintedCodes.length === 0) return true;
+
+      try {
+        const updatedCodes = await Promise.all(
+          unprintedCodes.map(async (code) => {
+            const response = await fetch(`/api/codes/${code.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ printed: true }),
+            });
+            const updated = await response.json();
+
+            if (!response.ok) {
+              throw new Error(updated.error || "Failed to update printed status");
+            }
+
+            return updated as Code;
+          }),
+        );
+        const updatedById = new Map(updatedCodes.map((code) => [code.id, code]));
+
+        setCodes((previous) => previous.map((code) => updatedById.get(code.id) ?? code));
+        setPrintCodes((previous) => previous.map((code) => updatedById.get(code.id) ?? code));
+
+        return true;
+      } catch (error: any) {
+        toast.error(error.message || t.loadingFailed);
+        return false;
+      }
+    },
+    [t.loadingFailed],
+  );
+
+  const printCurrentTickets = useCallback(async () => {
+    const markedPrinted = await markCodesPrinted(printCodes);
+
+    if (markedPrinted) {
+      window.print();
+    }
+  }, [markCodesPrinted, printCodes]);
 
   const markAvailableCodeAsUsed = async (code: Code) => {
     try {
@@ -427,11 +484,8 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
       toast.error(t.selectOne);
       return;
     }
-    if (selectedCodes.length > 1) {
-      toast.error(t.printOneOnly);
-      return;
-    }
-    setPrintCode(firstSelectedCode);
+
+    setPrintCodes(selectedCodes);
   };
 
   const selectAll = () => {
@@ -447,8 +501,6 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
 
   const allVisibleSelected =
     visibleCodes.length > 0 && visibleCodes.every((code) => selected.includes(code.id));
-
-  const printPrice = printCode ? getPrintedPrice(printCode.code) : null;
 
   const markSelectedAsUsed = () => {
     if (!firstSelectedCode) {
@@ -493,7 +545,7 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
         </section>
 
         {isLoading ? (
-          <div className="grid min-h-[360px] place-items-center rounded-lg border border-slate-200 bg-white">
+          <div className="grid min-h-[360px] place-items-center rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
           </div>
         ) : (
@@ -508,33 +560,33 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
                 </section>
 
                 <section className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
-                  <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-base font-semibold text-slate-950">{t.activity}</h2>
-                        <p className="mt-1 text-sm text-slate-500">{t.activityDetail}</p>
+                        <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t.activity}</h2>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t.activityDetail}</p>
                       </div>
-                      <span className="rounded-md border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-500">{t.lastTen}</span>
+                      <span className="rounded-md border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:border-slate-800 dark:text-slate-400">{t.lastTen}</span>
                     </div>
                     <div className="mt-6 flex h-56 items-end gap-3">
                       {chartData.length === 0 ? (
-                        <div className="grid h-full flex-1 place-items-center rounded-lg bg-slate-50 text-sm text-slate-400">{t.noData}</div>
+                        <div className="grid h-full flex-1 place-items-center rounded-lg bg-slate-50 text-sm text-slate-400 dark:bg-slate-800 dark:text-slate-500">{t.noData}</div>
                       ) : (
                         chartData.map((item) => (
                           <div key={item.label} className="flex flex-1 flex-col items-center gap-2">
-                            <div className="flex h-44 w-full max-w-12 flex-col justify-end overflow-hidden rounded-lg bg-slate-100">
+                            <div className="flex h-44 w-full max-w-12 flex-col justify-end overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
                               <div className="bg-indigo-500" style={{ height: `${item.active}%` }} />
-                              <div className="bg-slate-200" style={{ height: `${item.soft}%` }} />
+                              <div className="bg-slate-200 dark:bg-slate-700" style={{ height: `${item.soft}%` }} />
                             </div>
-                            <span className="text-xs text-slate-400">{item.label}</span>
+                            <span className="text-xs text-slate-400 dark:text-slate-500">{item.label}</span>
                           </div>
                         ))
                       )}
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 className="text-base font-semibold text-slate-950">{t.quickActions}</h2>
+                  <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t.quickActions}</h2>
                     <div className="mt-4 grid gap-3">
                       <Button onClick={selectAll} variant="outline" className="justify-start">
                         <Check className="mr-2 h-4 w-4" />
@@ -564,11 +616,11 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
             )}
 
             {(view === "codes" || view === "dashboard" || view === "reports") && (
-              <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
                   <div>
-                    <h2 className="text-base font-semibold text-slate-950">{view === "dashboard" ? t.latestCodes : t.allCodes}</h2>
-                    <p className="mt-1 text-sm text-slate-500">{t.tableHelp}</p>
+                    <h2 className="text-base font-semibold text-slate-950 dark:text-white">{view === "dashboard" ? t.latestCodes : t.allCodes}</h2>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t.tableHelp}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -589,8 +641,8 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] text-sm">
-                    <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+                  <table className="w-full min-w-[820px] text-sm">
+                    <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:bg-slate-950 dark:text-slate-500">
                       <tr>
                         <th className="w-12 px-5 py-3"></th>
                         <th className="px-5 py-3">{t.code}</th>
@@ -600,16 +652,16 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
                         <th className="px-5 py-3 text-right">{t.actions}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {latestCodes.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-5 py-12 text-center text-slate-500">
+                          <td colSpan={6} className="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
                             {codes.length === 0 ? t.noCodesEmpty : t.noCodes}
                           </td>
                         </tr>
                       ) : (
                         latestCodes.map((code) => (
-                          <tr key={code.id} className="hover:bg-slate-50/70">
+                          <tr key={code.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60">
                             <td className="px-5 py-4">
                               <input
                                 type="checkbox"
@@ -625,42 +677,56 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
                               />
                             </td>
                             <td className="px-5 py-4">
-                              <span className="rounded-md bg-slate-100 px-3 py-1.5 font-mono text-sm font-semibold text-slate-900">
+                              <span className="rounded-md bg-slate-100 px-3 py-1.5 font-mono text-sm font-semibold text-slate-900 dark:bg-slate-800 dark:text-slate-100">
                                 {code.code}
                               </span>
                             </td>
                             <td className="px-5 py-4">
-                              <span
-                                className={cn(
-                                  "rounded-full px-2.5 py-1 text-xs font-semibold",
-                                  code.used ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700",
-                                )}
-                              >
-                                {code.used ? t.used : t.available}
-                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span
+                                  className={cn(
+                                    "rounded-full px-2.5 py-1 text-xs font-semibold",
+                                    code.used
+                                      ? "bg-rose-50 text-rose-700 dark:bg-rose-400/10 dark:text-rose-200"
+                                      : "bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200",
+                                  )}
+                                >
+                                  {code.used ? t.used : t.available}
+                                </span>
+                                <span
+                                  className={cn(
+                                    "rounded-full px-2.5 py-1 text-xs font-semibold",
+                                    code.printed
+                                      ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-200"
+                                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+                                  )}
+                                >
+                                  {code.printed ? t.printed : t.notPrinted}
+                                </span>
+                              </div>
                             </td>
-                            <td className="px-5 py-4 text-slate-500">{formatDate(code.createdAt, language)}</td>
-                            <td className="px-5 py-4 text-slate-500">{code.usedAt ? formatDate(code.usedAt, language) : t.notUsed}</td>
+                            <td className="px-5 py-4 text-slate-500 dark:text-slate-400">{formatDate(code.createdAt, language)}</td>
+                            <td className="px-5 py-4 text-slate-500 dark:text-slate-400">{code.usedAt ? formatDate(code.usedAt, language) : t.notUsed}</td>
                             <td className="px-5 py-4">
                               <div className="flex justify-end gap-1">
-                                <button onClick={() => copyCode(code.code)} className="grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100">
+                                <button onClick={() => copyCode(code.code)} className="grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
                                   {copied === code.code ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                                 </button>
                                 <button
                                   onClick={() => (code.used ? markCodeAvailable(code) : markAvailableCodeAsUsed(code))}
                                   title={code.used ? "Mark available" : "Mark used and register user"}
-                                  className="grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100"
+                                  className="grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                                 >
                                   <Check className="h-4 w-4" />
                                 </button>
                                 <button
                                   onClick={() => markAvailableCodeAsUsed(code)}
                                   title="Register user for this code"
-                                  className="grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100"
+                                  className="grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                                 >
                                   <UserPlus className="h-4 w-4" />
                                 </button>
-                                <button onClick={() => deleteCode(code)} className="grid h-9 w-9 place-items-center rounded-md text-rose-500 hover:bg-rose-50">
+                                <button onClick={() => deleteCode(code)} className="grid h-9 w-9 place-items-center rounded-md text-rose-500 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-400/10">
                                   <Trash2 className="h-4 w-4" />
                                 </button>
                               </div>
@@ -678,21 +744,21 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
 
             {view === "settings" && (
               <section className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                  <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
+                <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950 dark:text-white">
                     <FileText className="h-4 w-4 text-indigo-600" />
                     {t.printTemplate}
                   </h2>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">
+                  <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
                     {t.printTemplateBody}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                  <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
+                <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950 dark:text-white">
                     <Trophy className="h-4 w-4 text-indigo-600" />
                     {t.rankingRule}
                   </h2>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">
+                  <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
                     {t.rankingRuleBody}
                   </p>
                 </div>
@@ -713,19 +779,21 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
           fetchCodes();
         }}
       />
-      {printCode && (
+      {printCodes.length > 0 && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/55 px-3 py-4 backdrop-blur-sm print:static print:block print:bg-white print:p-0">
-          <div className="w-full max-w-3xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl print:max-w-none print:rounded-none print:border-0 print:shadow-none">
-            <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
+          <div className="w-full max-w-5xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 print:max-w-none print:rounded-none print:border-0 print:bg-white print:shadow-none">
+            <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 print:hidden">
               <div>
-                <h2 className="text-lg font-semibold text-slate-950">{t.printPreview}</h2>
-                <p className="mt-1 font-mono text-sm text-slate-500">{printCode.code}</p>
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{t.printPreview}</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  {printCodes.length} {printCodes.length === 1 ? "ticket" : "tickets"} selected
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => setPrintCode(null)}>
+                <Button variant="outline" onClick={() => setPrintCodes([])}>
                   {t.close}
                 </Button>
-                <Button onClick={() => window.print()}>
+                <Button onClick={printCurrentTickets}>
                   <Printer className="mr-2 h-4 w-4" />
                   {t.printNow}
                 </Button>
@@ -733,33 +801,77 @@ export default function IrashoboyeWorkspace({ view }: { view: WorkspaceView }) {
             </div>
 
             <div className="p-4 print:p-0">
-              <section className="kolorex-print-page grid min-h-[520px] place-items-center rounded-lg border border-slate-200 bg-white p-8 text-center print:min-h-screen print:rounded-none print:border-0 print:p-16">
-                <div className="w-full max-w-2xl">
-                  <h3 className="text-base font-semibold text-slate-500 print:text-[22pt]">
-                    Kolorex Establishment Limited
-                  </h3>
-                  <p className="mt-10 break-all font-mono text-5xl font-black text-slate-950 sm:text-7xl print:text-[84pt]">
-                    {printCode.code}
-                  </p>
-                  <div className="mx-auto mt-10 h-px max-w-md bg-slate-200 print:bg-slate-400" />
-                  <p className="mt-10 text-sm font-semibold uppercase text-indigo-600 print:text-[18pt]">
-                    Contact number
-                  </p>
-                  <p className="mt-3 text-4xl font-black text-slate-950 sm:text-6xl print:text-[62pt]">
-                    +250788873038
-                  </p>
-                  {printPrice !== null && (
-                    <p className="mt-10 inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-5 py-3 text-2xl font-bold text-emerald-800 print:border-slate-400 print:bg-white print:px-8 print:py-4 print:text-[30pt] print:text-slate-950">
-                      {printPrice} Shillings
-                    </p>
-                  )}
+              <section className="kolorex-print-page min-h-[520px] rounded-lg border border-slate-200 bg-white p-4 text-center print:min-h-0 print:rounded-none print:border-0 print:p-0">
+                <style>{`
+                  @media print {
+                    @page {
+                      size: A4 landscape;
+                      margin: 0.7cm;
+                    }
+
+                    .kolorex-print-sheet {
+                      display: grid !important;
+                      grid-template-columns: repeat(3, minmax(0, 1fr));
+                      gap: 0.45cm;
+                      align-content: start;
+                    }
+
+                    .kolorex-print-ticket {
+                      min-height: 5.1cm;
+                      break-inside: avoid;
+                      page-break-inside: avoid;
+                      border: 1.5pt solid #0f172a !important;
+                      border-radius: 0 !important;
+                      padding: 0.45cm !important;
+                      box-shadow: none !important;
+                    }
+
+                    .kolorex-print-company {
+                      font-size: 15pt !important;
+                      line-height: 1.15 !important;
+                    }
+
+                    .kolorex-print-price {
+                      font-size: 34pt !important;
+                      line-height: 1 !important;
+                    }
+
+                    .kolorex-print-phone {
+                      font-size: 18pt !important;
+                      line-height: 1.1 !important;
+                    }
+                  }
+                `}</style>
+                <div className="kolorex-print-sheet grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {printCodes.map((code) => {
+                    const price = getPrintedPrice(code.code);
+
+                    return (
+                      <article
+                        key={code.id}
+                        className="kolorex-print-ticket flex min-h-[190px] flex-col items-center justify-center rounded-md border border-slate-900 bg-white px-4 py-5 shadow-sm"
+                      >
+                        <h3 className="kolorex-print-company text-base font-black uppercase leading-tight text-slate-950">
+                          {COMPANY_NAME}
+                        </h3>
+                        <p className="kolorex-print-price mt-5 text-4xl font-black leading-none text-slate-950">
+                          {price} Shillings
+                        </p>
+                        <p className="kolorex-print-phone mt-4 text-xl font-bold text-slate-950">
+                          Tel: {CONTACT_PHONE_NUMBER}
+                        </p>
+                        <p className="mt-4 break-all font-mono text-xs font-semibold uppercase tracking-normal text-slate-500 print:text-[9pt]">
+                          Code: {code.code}
+                        </p>
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             </div>
           </div>
         </div>
       )}
-      <Toaster position="top-right" />
     </>
   );
 }

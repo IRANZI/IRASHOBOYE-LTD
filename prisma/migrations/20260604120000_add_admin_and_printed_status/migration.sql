@@ -1,0 +1,16 @@
+ALTER TABLE "GeneratedCode"
+ADD COLUMN IF NOT EXISTS "printed" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN IF NOT EXISTS "printedAt" TIMESTAMPTZ;
+
+CREATE TABLE IF NOT EXISTS "Admin" (
+  "id" SERIAL NOT NULL,
+  "username" TEXT NOT NULL,
+  "passwordHash" TEXT NOT NULL,
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Admin_username_key" ON "Admin"("username");
+CREATE INDEX IF NOT EXISTS "Admin_username_idx" ON "Admin"("username");

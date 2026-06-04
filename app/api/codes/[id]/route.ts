@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   try {
-    const { used } = await request.json();
+    const body = await request.json();
     
     const codeId = Number(id);
 
@@ -14,13 +14,48 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         { status: 400 }
       );
     }
+
+    const data: {
+      used?: boolean;
+      usedAt?: Date | null;
+      printed?: boolean;
+      printedAt?: Date | null;
+    } = {};
+
+    if ("used" in body) {
+      if (typeof body.used !== "boolean") {
+        return NextResponse.json(
+          { error: 'The "used" value must be true or false' },
+          { status: 400 }
+        );
+      }
+
+      data.used = body.used;
+      data.usedAt = body.used ? new Date() : null;
+    }
+
+    if ("printed" in body) {
+      if (typeof body.printed !== "boolean") {
+        return NextResponse.json(
+          { error: 'The "printed" value must be true or false' },
+          { status: 400 }
+        );
+      }
+
+      data.printed = body.printed;
+      data.printedAt = body.printed ? new Date() : null;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json(
+        { error: 'No valid update fields provided' },
+        { status: 400 }
+      );
+    }
     
     const updatedCode = await prisma.generatedCode.update({
       where: { id: codeId },
-      data: {
-        used,
-        usedAt: used ? new Date() : null,
-      },
+      data,
     });
 
     return NextResponse.json({

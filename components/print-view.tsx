@@ -15,7 +15,7 @@ interface PrintViewProps {
   onClose: () => void
 }
 
-const PHONE_NUMBER = "+250788873038"
+const PHONE_NUMBER = "+250 784 321 509"
 
 const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(({ codes, onClose }, ref) => {
   useEffect(() => {

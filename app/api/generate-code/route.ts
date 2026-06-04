@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { triggerUpdate } from '../codes/updates/route';
-
-// Initialize Prisma Client
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 function generateAlphaNumericCode(length = 6) {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -65,6 +62,8 @@ export async function POST(request: Request) {
         code: newCode.code,
         used: newCode.used,
         usedAt: newCode.usedAt,
+        printed: newCode.printed,
+        printedAt: newCode.printedAt,
         createdAt: newCode.createdAt,
         updatedAt: newCode.updatedAt,
       },
@@ -79,8 +78,5 @@ export async function POST(request: Request) {
       { success: false, message: 'Internal server error', error: String(error) },
       { status: 500 }
     );
-  } finally {
-    // Disconnect Prisma client when done
-    await prisma.$disconnect();
   }
 }

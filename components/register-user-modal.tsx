@@ -38,7 +38,7 @@ const modalTranslations: Record<
     nameLabel: "Name *",
     phoneLabel: "Phone Number *",
     namePlaceholder: "Enter name",
-    phonePlaceholder: "+250788873038",
+    phonePlaceholder: "+250 784 321 509",
     cancel: "Cancel",
     register: "Register",
     registering: "Registering...",
@@ -52,7 +52,7 @@ const modalTranslations: Record<
     nameLabel: "Izina *",
     phoneLabel: "Numero ya Telefoni *",
     namePlaceholder: "Andika izina",
-    phonePlaceholder: "+250788873038",
+    phonePlaceholder: "+250 784 321 509",
     cancel: "Funga",
     register: "Andika",
     registering: "Irimo kwandika...",
@@ -132,17 +132,17 @@ export default function RegisterUserModal({
       aria-modal="true"
       aria-labelledby="register-user-title"
     >
-      <div className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50 p-6">
+      <div className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-950">
           <div className="flex gap-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-600 text-white">
               <UserPlus className="h-5 w-5" />
             </div>
             <div>
-              <h2 id="register-user-title" className="text-lg font-semibold text-slate-950">
+              <h2 id="register-user-title" className="text-lg font-semibold text-slate-950 dark:text-white">
                 {t.title}
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 {language === "en"
                   ? "Enter the person's details. This adds them to rankings."
                   : "Andika amakuru y'umukiriya. Ibi bimushyira ku rutonde."}
@@ -151,7 +151,7 @@ export default function RegisterUserModal({
           </div>
           <button
             onClick={onClose}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-white hover:text-slate-900"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             disabled={isSubmitting}
             aria-label="Close popup"
           >
@@ -161,10 +161,10 @@ export default function RegisterUserModal({
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
               {t.codeLabel}
             </label>
-            <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 font-mono text-lg font-bold text-indigo-800">
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 font-mono text-lg font-bold text-indigo-800 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-200">
               {code}
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function RegisterUserModal({
           <div className="mb-4">
             <label
               htmlFor="name"
-              className="mb-2 block text-sm font-medium text-slate-700"
+              className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200"
             >
               {t.nameLabel}
             </label>
@@ -182,7 +182,7 @@ export default function RegisterUserModal({
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/20"
               placeholder={t.namePlaceholder}
               required
               disabled={isSubmitting}
@@ -192,7 +192,7 @@ export default function RegisterUserModal({
           <div className="mb-6">
             <label
               htmlFor="phoneNumber"
-              className="mb-2 block text-sm font-medium text-slate-700"
+              className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200"
             >
               {t.phoneLabel}
             </label>
@@ -201,7 +201,7 @@ export default function RegisterUserModal({
               id="phoneNumber"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/20"
               placeholder={t.phonePlaceholder}
               required
               disabled={isSubmitting}
@@ -212,7 +212,7 @@ export default function RegisterUserModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
               disabled={isSubmitting}
             >
               {t.cancel}
